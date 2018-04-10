@@ -45,14 +45,19 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-//伽罗华域的实现
+//伽罗华域的运算法则
 
+//初始化伽罗华域的默认域空间大小为w
 extern int galois_init_default_field(int w);
 extern int galois_uninit_field(int w);
+//重新设置伽罗华域的域空间大小为w
 extern void galois_change_technique(gf_t *gf, int w);
 
+//GF(2^w)域里的单个元素a、b的乘法
 extern int galois_single_multiply(int a, int b, int w);
+//GF(2^w)域里的单个元素a、b的除法
 extern int galois_single_divide(int a, int b, int w);
+//GF(2^w)域里的当个元素x的逆运算
 extern int galois_inverse(int x, int w);
 
 //GF域加法运算（等价于异或运算）
@@ -83,7 +88,7 @@ void galois_w32_region_multiply(char *region,       /* Region to multiply */
                                   char *r2,         /* If r2 != NULL, products go here.  
                                                        Otherwise region is overwritten */
                                   int add);         /* If (r2 != NULL && add) the produce is XOR'd with r2 */
-//初始化伽罗华域
+//初始化伽罗华域GF(2^w)
 gf_t* galois_init_field(int w,
                              int mult_type,
                              int region_type,
@@ -91,13 +96,13 @@ gf_t* galois_init_field(int w,
                              uint64_t prim_poly,
                              int arg1,
                              int arg2);
-//初始化混合域
+//初始化伽罗华域GF(2^w)
 gf_t* galois_init_composite_field(int w,
                                 int region_type,
                                 int divide_type,
                                 int degree,
                                 gf_t* base_gf);
-//获取域指针
+//获取表示伽罗华域GF(2^w)的结构
 gf_t * galois_get_field_ptr(int w);
 
 #ifdef __cplusplus

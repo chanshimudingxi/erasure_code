@@ -2309,7 +2309,8 @@ int gf_w8_init(gf_t *gf)
   if (h->mult_type != GF_MULT_COMPOSITE) { 
     h->prim_poly |= 0x100;
   }
-
+  
+  //设置伽罗华域运算法则
   SET_FUNCTION(gf,multiply,w32,NULL)
   SET_FUNCTION(gf,divide,w32,NULL)
   SET_FUNCTION(gf,inverse,w32,NULL)

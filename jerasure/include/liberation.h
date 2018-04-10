@@ -42,10 +42,11 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-//Liberation RAID-6编码、Blaum-Roth编码和Liber8tion编码
-
+//Liberation RAID-6编码
 extern int *liberation_coding_bitmatrix(int k, int w);
+//Liber8tion RAID-6编码
 extern int *liber8tion_coding_bitmatrix(int k);
+//Blaum-Roth编码
 extern int *blaum_roth_coding_bitmatrix(int k, int w);
 
 #ifdef __cplusplus

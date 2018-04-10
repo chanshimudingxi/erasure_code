@@ -54,26 +54,34 @@ extern "C" {
 /* In all of the routines below:
 
    k = Number of data devices   //数据块的数量
-   m = Number of coding devices //检验块的数量
-   w = Word size  //解析单元大小
+   m = Number of coding devices //校验块的数量
+   w = Word size  //伽罗华域的空间大小为2^w
 
    data_ptrs = An array of k pointers to data which is size bytes.  
                Size must be a multiple of sizeof(long).
                Pointers must also be longword aligned.
+               长度为k的指针数组，每个指针指向的空间大小为size字节。
+               Size的值必须是sizeof(long)的倍数。同时按long类型指针访问空间时，
+               也必须是对齐的。
  
    coding_ptrs = An array of m pointers to coding data which is size bytes.
+                长度为m的指针数组，每个指针指向的空间大小为size字节。size约束同上。
 
    packetsize = The size of a coding block with bitmatrix coding. 
                 When you code with a bitmatrix, you will use w packets
                 of size packetsize.
+                比特矩阵方式编码时，每个包的大小为size，包的个数为w个。参考专业术语：binary distribution matrix
 
    matrix = an array of k*m integers.  
             It represents an m by k matrix.
             Element i,j is in matrix[i*k+j];
+            k*m个整数构成的矩阵，代表的是m行k列的矩阵，
+            所以第i行第j列表示的为m[i*k+j]。
 
    bitmatrix = an array of k*m*w*w integers.
             It represents an mw by kw matrix.
             Element i,j is in matrix[i*k*w+j];
+            k*m*w*w个比特构成的比特矩阵。
 
    erasures = an array of id's of erased devices. 
               Id's are integers between 0 and k+m-1.
@@ -81,6 +89,8 @@ extern "C" {
               Id's k to k+m-1 are id's of coding devices: 
                   Coding device id = id-k.
               If there are e erasures, erasures[e] = -1.
+              一组纠错码块的编号，id范围为[0,k+m-1]，[0,k-1]是数据块(数据块id为id)，
+              [k,k+m-1]时校验块（校验块id为id-k）。
 
    schedule = an array of schedule operations.  
 
@@ -256,7 +266,7 @@ void jerasure_do_scheduled_operations(char **ptrs, int **schedule, int packetsiz
    The two invertible function simply return whether the matrix is
    invertible.  (0 or 1). Mat will be destroyed.
  */
-
+//逆矩阵
 int jerasure_invert_matrix(int *mat, int *inv, int rows, int w);
 int jerasure_invert_bitmatrix(int *mat, int *inv, int rows);
 int jerasure_invertible_matrix(int *mat, int rows, int w);
@@ -274,7 +284,7 @@ int jerasure_invertible_bitmatrix(int *mat, int rows);
    the product.  Obviously, c1 should equal r2.  However, this is not
    validated by the procedure.  
 */
-
+//打印矩阵
 void jerasure_print_matrix(int *matrix, int rows, int cols, int w);
 void jerasure_print_bitmatrix(int *matrix, int rows, int cols, int w);
 

@@ -44,7 +44,9 @@ extern "C" {
 #endif
 //李德-所罗门(RS)编码
 extern int *reed_sol_vandermonde_coding_matrix(int k, int m, int w);
+//扩展李德-所罗门(RS)编码
 extern int *reed_sol_extended_vandermonde_matrix(int rows, int cols, int w);
+//李德-大所罗门分布编码
 extern int *reed_sol_big_vandermonde_distribution_matrix(int rows, int cols, int w);
 
 extern int reed_sol_r6_encode(int k, int w, char **data_ptrs, char **coding_ptrs, int size);
