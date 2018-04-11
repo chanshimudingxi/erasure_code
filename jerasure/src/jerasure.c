@@ -96,31 +96,40 @@ void jerasure_print_bitmatrix(int *m, int rows, int cols, int w)
   }
 }
 
+/*
+*@k：k+m中的k
+*@m：k+m中的m
+*@matrix：系数矩阵(m*k)
+*@erased：对所有纠错码块进行标记，长度为m+k。被清除的块标记为1，反之则为0。
+*@decoding_matrix：编码矩阵(k*k)
+*@dm_ids：长度为k的数组，记录下没有被清除的块id，用来复原丢失数据的源块id。
+*/
 int jerasure_make_decoding_matrix(int k, int m, int w, int *matrix, int *erased, int *decoding_matrix, int *dm_ids)
 {
   int i, j, *tmpmat;
 
-  j = 0;
+  j = 0;//记录good块个数，最大个数为k
   for (i = 0; j < k; i++) {
     if (erased[i] == 0) {
-      dm_ids[j] = i;
+      dm_ids[j] = i;//记录good块id，数组总长度为k
       j++;
     }
   }
 
+  //k*k矩阵
   tmpmat = talloc(int, k*k);
   if (tmpmat == NULL) { return -1; }
   for (i = 0; i < k; i++) {
-    if (dm_ids[i] < k) {
+    if (dm_ids[i] < k) {//good块是数据块
       for (j = 0; j < k; j++) tmpmat[i*k+j] = 0;
-      tmpmat[i*k+dm_ids[i]] = 1;
-    } else {
+      tmpmat[i*k+dm_ids[i]] = 1;//这行全为0，除了值等于good块id的列为1
+    } else {//good块是编码块
       for (j = 0; j < k; j++) {
-        tmpmat[i*k+j] = matrix[(dm_ids[i]-k)*k+j];
+        tmpmat[i*k+j] = matrix[(dm_ids[i]-k)*k+j];//这行和系数矩阵matrix的行相同
       }
     }
   }
-
+  //对矩阵tmpmat求逆矩阵，结果放入decoding_matrix中
   i = jerasure_invert_matrix(tmpmat, decoding_matrix, k, w);
   free(tmpmat);
   return i;
@@ -236,7 +245,9 @@ int jerasure_matrix_decode(int k, int m, int w, int *matrix, int row_k_ones, int
    */
 
   for (i = 0; edd > 0 && i < lastdrive; i++) {
+    //erased[i]的值记录的是块i是否丢失，是为1，不是为0
     if (erased[i]) {
+      //复原丢失的块i
       jerasure_matrix_dotprod(k, w, decoding_matrix+(i*k), dm_ids, i, data_ptrs, coding_ptrs, size);
       edd--;
     }
@@ -305,6 +316,15 @@ int *jerasure_matrix_to_bitmatrix(int k, int m, int w, int *matrix)
   return bitmatrix;
 }
 
+/*
+*@k
+*@m
+*@w
+*@matrix：系数矩阵m*k
+*@data_ptrs
+*@coding_ptrs
+*@size
+*/
 void jerasure_matrix_encode(int k, int m, int w, int *matrix,
                           char **data_ptrs, char **coding_ptrs, int size)
 {
@@ -315,6 +335,7 @@ void jerasure_matrix_encode(int k, int m, int w, int *matrix,
     assert(0);
   }
 
+  //复原出所有的编码块，也就是块id为[k+i,k+m-1]的块
   for (i = 0; i < m; i++) {
     jerasure_matrix_dotprod(k, w, matrix+(i*k), NULL, k+i, data_ptrs, coding_ptrs, size);
   }
@@ -580,6 +601,17 @@ void jerasure_free_schedule_cache(int k, int m, int ***cache)
   free(cache);
 }
 
+/*
+*如果k+m是整个纠错码块的总体个数，那么id为[0,k-1]代表数据块，[k,k+m-1]代表校验块。
+*@k：k+m的k。
+*@w：伽罗华域GF(2^w)
+*@matrix_row:编码矩阵（k*k）
+*@src_ids：是一个长度为k的一维数组，代表k个用来提供复原功能的源块，数组中元素的值是块id。
+*@dest_id：表示需要被复原的目标块id。
+*@data_ptrs：数据块
+*@coding_ptrs：校验块
+*@size：块长度
+*/
 void jerasure_matrix_dotprod(int k, int w, int *matrix_row,
                           int *src_ids, int dest_id,
                           char **data_ptrs, char **coding_ptrs, int size)
@@ -594,24 +626,24 @@ void jerasure_matrix_dotprod(int k, int w, int *matrix_row,
   }
 
   init = 0;
-
+  //需要恢复的块:地址是dptr,长度是size。data_ptrs是数据块，coding_ptrs是编码块
   dptr = (dest_id < k) ? data_ptrs[dest_id] : coding_ptrs[dest_id-k];
 
   /* First copy or xor any data that does not need to be multiplied by a factor */
 
   for (i = 0; i < k; i++) {
     if (matrix_row[i] == 1) {
-      if (src_ids == NULL) {
+      if (src_ids == NULL) {//没有good块
         sptr = data_ptrs[i];
-      } else if (src_ids[i] < k) {
+      } else if (src_ids[i] < k) {//good块是数据块
         sptr = data_ptrs[src_ids[i]];
-      } else {
+      } else {//good块是校验块
         sptr = coding_ptrs[src_ids[i]-k];
       }
       if (init == 0) {
-        memcpy(dptr, sptr, size);
+        memcpy(dptr, sptr, size);//sptr拷贝到dptr
         jerasure_total_memcpy_bytes += size;
-        init = 1;
+        init = 1;//表示dptr初始化了
       } else {
         galois_region_xor(sptr, dptr, size);
         jerasure_total_xor_bytes += size;
@@ -623,11 +655,11 @@ void jerasure_matrix_dotprod(int k, int w, int *matrix_row,
 
   for (i = 0; i < k; i++) {
     if (matrix_row[i] != 0 && matrix_row[i] != 1) {
-      if (src_ids == NULL) {
+      if (src_ids == NULL) {//没有good块
         sptr = data_ptrs[i];
-      } else if (src_ids[i] < k) {
+      } else if (src_ids[i] < k) {//good块是数据块
         sptr = data_ptrs[src_ids[i]];
-      } else {
+      } else {//good块是校验块
         sptr = coding_ptrs[src_ids[i]-k];
       }
       switch (w) {

@@ -128,10 +128,10 @@ int main(int argc, char **argv)
 		usage("size must be multiple of sizeof(long)");
   if (sscanf(argv[5], "%d", &seed) == 0) usage("Bad seed");
 
-  matrix = talloc(int, m*k);
+  matrix = talloc(int, m*k);//m*k矩阵，也就是得到EC校验块的生成矩阵，也叫系数矩阵。
   for (i = 0; i < m; i++) {
     for (j = 0; j < k; j++) {
-      matrix[i*k+j] = galois_single_divide(1, i ^ (m + j), w);
+      matrix[i*k+j] = galois_single_divide(1, i ^ (m + j), w);//这个是系数矩阵初始化，柯西编码
     }
   }
 
@@ -158,14 +158,14 @@ int main(int argc, char **argv)
   for (i = 0; i < m; i++) {
     coding[i] = talloc(char, size);
   }
-
+  //根据系数矩阵matrix进行数据块的编码，得到编码块
   jerasure_matrix_encode(k, m, w, matrix, data, coding, size);
   
   printf("Encoding Complete:\n\n");
   print_data_and_coding(k, m, w, size, data, coding);
 
-  erasures = talloc(int, (m+1));
-  erased = talloc(int, (k+m));
+  erasures = talloc(int, (m+1));//长度为m+1，存储不超过m个丢失的块id。
+  erased = talloc(int, (k+m));//长度为k+m，标记所有块的状态。1块被清除，0没有被清除。
   for (i = 0; i < m+k; i++) erased[i] = 0;
   for (i = 0; i < m; ) {
     erasures[i] = (MOA_Random_W(w, 1))%(k+m);
@@ -176,22 +176,23 @@ int main(int argc, char **argv)
       i++;
     }
   }
-  erasures[i] = -1;
+  erasures[i] = -1;//遇到-1说明没有更多的块被清除了，也是erasures为m+1的原因
 
   printf("Erased %d random devices:\n\n", m);
   print_data_and_coding(k, m, w, size, data, coding);
-  
+
+  //根据系数矩阵matrix进行纠错码块的解码。可以复原erasures记录的不超过m个丢失的块。
   i = jerasure_matrix_decode(k, m, w, matrix, 0, erasures, data, coding, size);
 
   printf("State of the system after decoding:\n\n");
   print_data_and_coding(k, m, w, size, data, coding);
   
-  decoding_matrix = talloc(int, k*k);
-  dm_ids = talloc(int, k);
+  decoding_matrix = talloc(int, k*k);//decoding_matrix是个k*k的矩阵
+  dm_ids = talloc(int, k);//dm_ids长度为k
 
   for (i = 0; i < m; i++) erased[i] = 1;
   for (; i < k+m; i++) erased[i] = 0;
-
+  //根据erased记录的所有块的丢失情况，计算解码矩阵decoding_matrix、good块记录dm_ids。
   jerasure_make_decoding_matrix(k, m, w, matrix, erased, decoding_matrix, dm_ids);
 
   printf("Suppose we erase the first %d devices.  Here is the decoding matrix:\n\n", m);
@@ -201,6 +202,7 @@ int main(int argc, char **argv)
   jerasure_print_matrix(dm_ids, 1, k, w);
 
   bzero(data[0], size);
+  //根据解码矩阵decoding_matrix、good块记录dm_ids还原数据块。这里复原的是id为0的块
   jerasure_matrix_dotprod(k, w, decoding_matrix, dm_ids, 0, data, coding, size);
 
   printf("\nAfter calling jerasure_matrix_dotprod, we calculate the value of device #0 to be:\n\n");

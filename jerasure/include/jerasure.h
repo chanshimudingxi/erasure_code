@@ -185,6 +185,7 @@ void jerasure_schedule_encode(int k, int m, int w, int **schedule,
          filled in appropriately.  dm_ids[i] is the id of element
          i of the survivors vector.  I.e. row i of the decoding matrix
          times dm_ids equals data drive i.
+         dm_ids是一个长度为k的数组
 
          Both of these routines take "erased" instead of "erasures".
          Erased is a vector with k+m elements, which has 0 or 1 for 
@@ -224,6 +225,10 @@ int *jerasure_erasures_to_erased(int k, int m, int *erasures);
    src_ids is a matrix of k id's (0 - k-1 for data devices, k - k+m-1
    for coding devices) that identify the source devices.  Dest_id is
    the id of the destination device.
+   src_ids是一个长度为k的一维数组，代表k个用来提供复原功能的基础块。每个数组中的元
+   素代表的是纠错码块的id。如果m+k是整个纠错码块的总体个数，那么id为[0,k-1]代表
+   数据块，[k,k+m-1]代表校验块。
+   dest_id是表示将要被复原的块id。
 
    jerasure_matrix_dotprod only works when w = 8|16|32.
 

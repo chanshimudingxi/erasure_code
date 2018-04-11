@@ -304,6 +304,8 @@ void galois_w08_region_multiply(char *region,      /* Region to multiply */
   if (gfp_array[8] == NULL) {
     galois_init(8);
   }
+  if(r2 == NULL)
+    fprintf(stderr,"r2 null");
   gfp_array[8]->multiply_region.w32(gfp_array[8], region, r2, multby, nbytes, add);
 }
 
@@ -316,6 +318,8 @@ void galois_w16_region_multiply(char *region,      /* Region to multiply */
   if (gfp_array[16] == NULL) {
     galois_init(16);
   }
+  if(r2 == NULL)
+    fprintf(stderr,"r2 null");
   gfp_array[16]->multiply_region.w32(gfp_array[16], region, r2, multby, nbytes, add);
 }
 
@@ -329,6 +333,8 @@ void galois_w32_region_multiply(char *region,      /* Region to multiply */
   if (gfp_array[32] == NULL) {
     galois_init(32);
   }
+  if(r2 == NULL)
+    fprintf(stderr,"r2 null");
   gfp_array[32]->multiply_region.w32(gfp_array[32], region, r2, multby, nbytes, add);
 }
 
