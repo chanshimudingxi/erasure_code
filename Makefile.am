@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS=foreign
-AM_CPPFLAGS =-Ijerasure/jerasure/include\
-       -Ijerasure/gf-complete/include\
+AM_CPPFLAGS =-I./jerasure/jerasure/include\
+       -I./jerasure/gf-complete/include
 
 AM_CFLAGS = -O3 $(SIMD_FLAGS) -fPIC -Wsign-compare
 

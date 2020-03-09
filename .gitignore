@@ -1,7 +1,12 @@
-/INSTALL
+INSTALL
 Makefile
 Makefile.in
-/aclocal.m4
-/kautom4te.cache/
+aclocal.m4
+autom4te.cache/
 configure.scan
 autoscan.log
+compile
+configure
+depcomp
+install-sh
+missing
