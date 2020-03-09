@@ -1,6 +1,7 @@
-jerasure/cscope.files
-jerasure/cscope.in.out
-jerasure/cscope.out
-jerasure/cscope.po.out
-jerasure/tags
+/INSTALL
+Makefile
+Makefile.in
+/aclocal.m4
+/autom4te.cache/
+
 
