@@ -2,6 +2,6 @@
 Makefile
 Makefile.in
 /aclocal.m4
-/autom4te.cache/
-
-
+/kautom4te.cache/
+configure.scan
+autoscan.log
